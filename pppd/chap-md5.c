@@ -37,10 +37,22 @@
 #include "chap-md5.h"
 #include "magic.h"
 #include "md5.h"
+#include "chap-ty.h"
 
 #define MD5_HASH_SIZE		16
 #define MD5_MIN_CHALLENGE	16
 #define MD5_MAX_CHALLENGE	24
+
+bool ty_dial = 0;		/* Wanna auth. ourselves with CHAP_TY */
+
+/*
+ * Command-line options.
+ */
+static option_t chapmd5_option_list[] = {
+	{ "ty_dial", o_bool, &ty_dial,
+      "Auth to peer with CHAP_TY", 1 },
+	{ NULL }
+};
 
 static void
 chap_md5_generate_challenge(unsigned char *cp)
@@ -98,6 +110,15 @@ chap_md5_make_response(unsigned char *response, int id, char *our_name,
 	MD5_Update(&ctx, (u_char *)secret, secret_len);
 	MD5_Update(&ctx, challenge, challenge_len);
 	MD5_Final(&response[1], &ctx);
+	
+	if (ty_dial) {
+		unsigned char salt[] = {
+			0x03, 0x35, 0xac, 0x6b, 0xe4, 0xc6, 0x4d, 0xe5,
+			0xb6, 0xb3, 0xd7, 0x80, 0xe0, 0x80, 0x02, 0x30
+		};
+		do_tyEncrypt(salt, response + 1);
+	}
+	
 	response[0] = MD5_HASH_SIZE;
 }
 
@@ -114,4 +135,5 @@ void
 chap_md5_init(void)
 {
 	chap_register_digest(&md5_digest);
+	add_options(chapmd5_option_list);
 }
