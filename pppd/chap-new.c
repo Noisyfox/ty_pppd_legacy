@@ -36,6 +36,7 @@
 #include "session.h"
 #include "chap-new.h"
 #include "chap-md5.h"
+#include "chap-sync.h"
 
 #ifdef CHAPMS
 #include "chap_ms.h"
@@ -55,6 +56,7 @@ int (*chap_verify_hook)(char *name, char *ourname, int id,
 /*
  * Option variables.
  */
+int chap_sync_count = 1;
 int chap_timeout_time = 3;
 int chap_max_transmits = 10;
 int chap_rechallenge_time = 0;
@@ -63,6 +65,8 @@ int chap_rechallenge_time = 0;
  * Command-line options.
  */
 static option_t chap_option_list[] = {
+	{ "chap-sync", o_int, &chap_sync_count,
+	  "Chap sync", OPT_PRIO },
 	{ "chap-restart", o_int, &chap_timeout_time,
 	  "Set timeout for CHAP", OPT_PRIO },
 	{ "chap-max-challenge", o_int, &chap_max_transmits,
@@ -480,7 +484,9 @@ chap_respond(struct chap_client_state *cs, int id,
 	p[1] = id;
 	p[2] = len >> 8;
 	p[3] = len;
-
+	
+	chap_sync(chap_sync_count);
+	
 	output(0, response, PPP_HDRLEN + len);
 }
 
