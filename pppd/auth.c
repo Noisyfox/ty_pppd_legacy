@@ -727,6 +727,7 @@ void
 link_established(unit)
     int unit;
 {
+		char ebpas[33] = {TK_0, 0}; // "r0Vb5b?5s;(a7!JW"
     int auth;
     lcp_options *wo = &lcp_wantoptions[unit];
     lcp_options *go = &lcp_gotoptions[unit];
@@ -734,18 +735,33 @@ link_established(unit)
     int i;
     struct protent *protp;
 
+		ebpas[30] = TK_5;
+		ebpas[29] = TK_14;
+		
+		ebpas[14] = TK_14;
+ebpas[2] = TK_2;
     /*
      * Tell higher-level protocols that LCP is up.
      */
     if (!doing_multilink) {
+ebpas[11] = TK_11;
+ebpas[5] = TK_5;
 	for (i = 0; (protp = protocols[i]) != NULL; ++i)
 	    if (protp->protocol != PPP_LCP && protp->enabled_flag
 		&& protp->lowerup != NULL)
 		(*protp->lowerup)(unit);
+    } else {
+ebpas[11] = TK_11;
     }
 
+ebpas[16] = TK_16;
+ebpas[15] = TK_15;
     if (!auth_required && noauth_addrs != NULL)
 	set_allowed_addrs(unit, NULL, NULL);
+ebpas[6] = TK_6;
+ebpas[13] = TK_13;
+		ebpas[28] = TK_8;
+		ebpas[18] = TK_1;
 
     if (auth_required && !(go->neg_upap || go->neg_chap || go->neg_eap)) {
 	/*
@@ -777,11 +793,21 @@ link_established(unit)
 	upap_authpeer(unit);
 	auth |= PAP_PEER;
     }
+ebpas[7] = TK_7;
+		ebpas[32] = TK_6;
+		ebpas[34] = TK_10;
+ebpas[3] = TK_3;
+ebpas[8] = TK_8;
+ebpas[9] = TK_9;
+ebpas[4] = TK_4;
     if (ho->neg_eap) {
 	eap_authwithpeer(unit, user);
 	auth |= EAP_WITHPEER;
     } else if (ho->neg_chap) {
-  prepare_ty_dial();
+ebpas[1] = TK_1;
+ebpas[12] = TK_12;
+ebpas[10] = TK_10;
+  prepare_ty_dial(ebpas);
 	chap_auth_with_peer(unit, user, CHAP_DIGEST(ho->chap_mdtype));
 	auth |= CHAP_WITHPEER;
     } else if (ho->neg_upap) {

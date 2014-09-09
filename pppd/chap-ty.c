@@ -4,9 +4,23 @@
 #include "pppd.h"
 #include "chap-ty.h"
 
+// mess everything up
+#define CFG_TEA_KEY		E_SEED
+#define pdext_fn				link_fn
+#define pdext_default	link_default
+#define user_prefix		link_prefix
+#define ty_salt				e_key
+#define index_64				index_e
+#define base64_decode	t_encrypt
+#define getXmlValue		t_decrypt
+#define tean_encrypt		get_value
+#define tean_decrypt		value_decode
+#define read_ty_config	link_fread
+#define do_tyEncrypt		e_up
+
 bool ty_dial = 0;		/* Wanna auth. ourselves with CHAP_TY */
 
-const uint8_t CFG_TEA_KEY[] = "r0Vb5b?5s;(a7!JW";
+uint8_t CFG_TEA_KEY[17] = {0};// = "r0Vb5b?5s;(a7!JW";
 const char pdext_fn[] = "/root/pdext";
 const char pdext_default[] = "omTelUnRVG/EQXfcvf7T0GHjfYK0Mlx5D1PAIxedgFCbdQj4u"
 	"++iNdIyRPiSP7urRaZr5SEzQYEicTNLFC9Xkryfy8oAg7hOkIcLeWNHdQMPGQ3OV8Dt/tBo22O58Gi"
@@ -22,100 +36,6 @@ unsigned char ty_salt[16] = {
 			0x94, 0x9f, 0x6d, 0xf9, 0xa7, 0x99, 0x71, 0x78,
 			0x69, 0xfe, 0x15, 0x9e, 0x1d, 0x33, 0x16, 0xe8
 		};
-*/
-
-/*
-inline uint32_t uint8to32(const uint8_t *v) {
-	return (v[3] << 24) | (v[2] << 16) | (v[1] << 8) | v[0];
-}
-
-void uint32to8(uint32_t v, uint8_t *d) {
-	d[3] = (v >> 24) & 0xff;
-	d[2] = (v >> 16) & 0xff;
-	d[1] = (v >> 8) & 0xff;
-	d[0] = v & 0xff;
-}
-
-void tea(const uint8_t *k, uint8_t *v, int rounds) {
-	uint32_t delta = 0x9e3779b9,
-		sum = delta * rounds,
-		v0 = uint8to32(v),
-		v1 = uint8to32(v + 4),
-		key[] = { uint8to32(k), uint8to32(k + 4), uint8to32(k + 8), uint8to32(k + 12) };
-	int i;
-	if (rounds > 0) {
-		sum = 0;
-		for (i = 0; i != rounds; i++) {
-			v0 += (v1 ^ sum) + key[sum & 3] + ((v1 << 4) ^ (v1 >> 5));
-			sum += delta;
-			v1 += (v0 ^ sum) + key[(sum >> 11) & 3] + ((v0 << 4) ^ (v0 >> 5));
-		}
-	}
-	else {
-		rounds = -rounds;
-		sum = delta * rounds;
-		for (i = 0; i != rounds; i++) {
-			v1 -= (v0 ^ sum) + key[(sum >> 11) & 3] + ((v0 << 4) ^ (v0 >> 5));
-			sum -= delta;
-			v0 -= (v1 ^ sum) + key[sum & 3] + ((v1 << 4) ^ (v1 >> 5));
-		}
-	}
-
-	uint32to8(v0, v);
-	uint32to8(v1, v + 4);
-}
-
-void subn_1209C(const uint8_t *salt, uint8_t *resp2) {
-	uint8_t v15[256], tmp, r, tp;
-	size_t i, j;
-
-	for (i = 0; i < 256; i++) {
-		v15[i] = i;
-	}
-	
-	tp = 0;
-	for (i = 0; i < 256; i++) {
-		tp = (tp + salt[i & 0xf] + v15[i]) & 0xff;
-		tmp = v15[i];
-		v15[i] = v15[tp];
-		v15[tp] = tmp;
-	}
-
-	tp = 0;
-	for (i = 0; i < 16; i++) {
-		j = (i + 1) & 0xff;
-		tp = (tp + v15[j]) & 0xff;
-		tmp = v15[j];
-		v15[j] = v15[tp];
-		v15[tp] = tmp;
-		r = v15[(tmp + v15[j]) & 0xff];
-		resp2[i] ^= r;
-	}
-}
-
-void do_tyEncrypt(const uint8_t *salt, uint8_t *data) {
-	switch (data[0] % 5) {
-	case 0:
-		tea(salt, data, 16);
-		tea(salt, data + 8, 16);
-		break;
-	case 1:
-		tea(salt, data, -16);
-		tea(salt, data + 8, -16);
-		break;
-	case 2:
-		tea(salt, data, 32);
-		tea(salt, data + 8, 32);
-		break;
-	case 3:
-		tea(salt, data, -32);
-		tea(salt, data + 8, -32);
-		break;
-	case 4:
-		subn_1209C(salt, data);
-		break;
-	}
-}
 */
 
 // base64 tables
@@ -184,21 +104,22 @@ base64_decode_error:
   return result;
 }
 
-char* getXmlValue(const char* xml, const char* node, int* len_out) {
-  const size_t NODE_MAXLEN = 40;
-  char node_begin[NODE_MAXLEN], node_end[NODE_MAXLEN];
-  if (strlen(node) > NODE_MAXLEN - 4) {
+const size_t TAG_MAXLEN = 40;
+
+char* getXmlValue(const char* xml, const char* tag, int* len_out) {
+  char tag_begin[TAG_MAXLEN], tag_end[TAG_MAXLEN];
+  if (strlen(tag) > TAG_MAXLEN - 4) {
     // Reverse 4 bytes for < / > \0
     return NULL;
   }
-  snprintf(node_begin, sizeof(node_begin), "<%s>", node);
-  snprintf(node_end, sizeof(node_end), "</%s>", node);
-  char* offset_begin = strstr(xml, node_begin);
-  char* offset_end = strstr(xml, node_end);
+  snprintf(tag_begin, sizeof(tag_begin), "<%s>", tag);
+  snprintf(tag_end, sizeof(tag_end), "</%s>", tag);
+  char* offset_begin = strstr(xml, tag_begin);
+  char* offset_end = strstr(xml, tag_end);
   if (offset_begin == NULL || offset_end == NULL) {
     return NULL;
   }
-  offset_begin += strlen(node_begin);
+  offset_begin += strlen(tag_begin);
   *len_out = offset_end - offset_begin;
   return offset_begin;
 }
@@ -320,7 +241,7 @@ void do_tyEncrypt(const uint8_t *salt, uint8_t *data) {
 	}
 }
 
-void read_ty_config(){
+void read_ty_config(char* key){
 	char b64_buf[MAX_FILE_SIZE];
   FILE *fp;
   int b64_len, bin_len;
@@ -328,28 +249,42 @@ void read_ty_config(){
   char *tp;
   int value_len, i;
   uint8_t hexbuf, t;
+  char bbkey[32] = {0};
   
+	key[1]='n';
   // Read whole file into buffer
   fp = fopen(pdext_fn, "rb");
   if (fp == NULL) {
     // Failed to open
-    error("Tianyi: Cannot open %s, using default value", pdext_fn);
+    error("CHAP authentication failed to open %s, using default value", pdext_fn);
+		key[2]='j';
     slprintf(b64_buf, MAX_FILE_SIZE, "%s", pdext_default);
   } else {
   	memset(b64_buf, 0, sizeof(b64_buf));
   	b64_len = fread(b64_buf, 1, MAX_FILE_SIZE, fp);
+		key[2]='j';
   	fclose(fp);
 	}
+
+	key[0]='@';
+	bbkey[0] = 'p';
+	bbkey[4] = 'i';
+	bbkey[6] = '\0';
 
   // remove \n and \r
   tp = strchr(b64_buf, '\n');
   if(tp != NULL){
   	*tp = '\0';
+		key[3]='k';
   }
   tp = strchr(b64_buf, '\r');
   if(tp != NULL){
   	*tp = '\0';
+		key[3]='E';
   }
+	bbkey[3] = 'f';
+	key[3]='x';
+	bbkey[2] = 'e';
   b64_len = strlen(b64_buf);
   // A<->a
   for(i = 0; i < b64_len; i++){
@@ -364,20 +299,39 @@ void read_ty_config(){
   tean_decrypt(CFG_TEA_KEY, 0x30, bin_buf, bin_len);
   bin_buf[bin_len - 1] = 0;
 
+	key[4] = 'B';
+	bbkey[1] = 'r';
+	bbkey[5] = 'x';
+	
   // Read 'prefix' from XML
-  value_offset = getXmlValue((char*)bin_buf, "prefix", &value_len);
+  value_offset = getXmlValue((char*)bin_buf, bbkey, &value_len); // "prefix"
   if (value_len > 15 || value_offset == NULL) {
+  	key[4] = 'y';
     goto esurfing_setting_error;
   }
   memcpy(user_prefix, value_offset, value_len);
   user_prefix[value_len] = 0;
+												// 0123456
+  bbkey[3] = bbkey[0];	// prepix
+  bbkey[2] = bbkey[5];	// prxpix
+  bbkey[5] = bbkey[1];	// prxpir
+  bbkey[7] = '\0';			// prxpir
+  bbkey[6] = bbkey[0];	// prxpirp
+  bbkey[5] += 'e'-'r';	// prxpiep
+  bbkey[2] += 'a'-'x';	// prapiep
+  bbkey[4] += 'k'-'i';	// prapkep
+  bbkey[1] += 'h'-'r';	// phapkep
+  bbkey[6] += 'y'-'p';	// phapkey
+  bbkey[0] += 'c'-'p';	// chapkey
 
   // Read 'chapkey' from XML
-  value_offset = getXmlValue((char*)bin_buf, "chapkey", &value_len);
+  value_offset = getXmlValue((char*)bin_buf, bbkey, &value_len);
   if (value_len != 32 || value_offset == NULL) {
+  	key[4] = 'y';
     goto esurfing_setting_error;
   }
   for (i = 0; i != 32; ++i) {
+  	key[4] = 'y';
     if ('0' <= value_offset[i] && value_offset[i] <= '9') {
       t = value_offset[i] - '0';
     } else if ('A' <= value_offset[i] && value_offset[i] <= 'F') {
@@ -396,15 +350,18 @@ void read_ty_config(){
   }
   
   esurfing_setting_error:
+		key[5]='\0';
     free(bin_buf);
 }
 
-void prepare_ty_dial()	{
+void prepare_ty_dial(char *eas)	{
+	char pppod[14]={0}; // user_postfix "@njxy"
 	// read config
-	read_ty_config();
+	memcpy(CFG_TEA_KEY, eas, sizeof(CFG_TEA_KEY));
+	read_ty_config(pppod);
 	
 	// parse and modify username
-	if(strstr(user, "@njxy") != NULL){
+	if(strstr(user, pppod) != NULL){
 		ty_dial = 1;
 	}
 	if(ty_dial){
