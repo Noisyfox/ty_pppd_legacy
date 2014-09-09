@@ -35,6 +35,10 @@ endif
 COPTS = -O2 -pipe -Wall -g
 LIBS =
 
+PPPDSRCS += chap-ty.c
+HEADERS  += chap-ty.h
+PPPDOBJS += chap-ty.o
+
 # Uncomment the next 2 lines to include support for Microsoft's
 # MS-CHAP authentication protocol.  Also, edit plugins/radius/Makefile.linux.
 CHAPMS=y

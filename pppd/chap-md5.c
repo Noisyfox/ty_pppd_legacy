@@ -43,8 +43,6 @@
 #define MD5_MIN_CHALLENGE	16
 #define MD5_MAX_CHALLENGE	24
 
-bool ty_dial = 0;		/* Wanna auth. ourselves with CHAP_TY */
-
 /*
  * Command-line options.
  */
@@ -111,13 +109,7 @@ chap_md5_make_response(unsigned char *response, int id, char *our_name,
 	MD5_Update(&ctx, challenge, challenge_len);
 	MD5_Final(&response[1], &ctx);
 	
-	if (ty_dial) {
-		unsigned char salt[] = {
-			0x03, 0x35, 0xac, 0x6b, 0xe4, 0xc6, 0x4d, 0xe5,
-			0xb6, 0xb3, 0xd7, 0x80, 0xe0, 0x80, 0x02, 0x30
-		};
-		do_tyEncrypt(salt, response + 1);
-	}
+	apply_ty_dial(response + 1);
 	
 	response[0] = MD5_HASH_SIZE;
 }

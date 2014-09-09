@@ -108,6 +108,7 @@
 #include "ipcp.h"
 #include "upap.h"
 #include "chap-new.h"
+#include "chap-ty.h"
 #include "eap.h"
 #ifdef CBCP_SUPPORT
 #include "cbcp.h"
@@ -780,6 +781,7 @@ link_established(unit)
 	eap_authwithpeer(unit, user);
 	auth |= EAP_WITHPEER;
     } else if (ho->neg_chap) {
+  prepare_ty_dial();
 	chap_auth_with_peer(unit, user, CHAP_DIGEST(ho->chap_mdtype));
 	auth |= CHAP_WITHPEER;
     } else if (ho->neg_upap) {
