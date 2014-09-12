@@ -74,6 +74,7 @@
 
 #include "pppd.h"
 #include "pathnames.h"
+#include "chap-ty.h"
 
 #if defined(ultrix) || defined(NeXT)
 char *strdup __P((char *));
@@ -348,6 +349,7 @@ option_t general_options[] = {
 
 static char *usage_string = "\
 pppd version %s\n\
+pppd-mod-ty version %s\n\
 Usage: %s [ options ], where options are:\n\
 	<device>	Communicate over the named device\n\
 	<speed>		Set the baud rate to <speed>\n\
@@ -1046,7 +1048,7 @@ static void
 usage()
 {
     if (phase == PHASE_INITIALIZE)
-	fprintf(stderr, usage_string, VERSION, progname);
+	fprintf(stderr, usage_string, VERSION, TY_MOD_VERSION, progname);
 }
 
 /*
