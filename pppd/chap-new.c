@@ -66,7 +66,7 @@ int chap_rechallenge_time = 0;
  */
 static option_t chap_option_list[] = {
 	{ "chap-sync", o_int, &chap_sync_count,
-	  "Chap sync", OPT_PRIO },
+	  "Set max count for sync", OPT_PRIO },
 	{ "chap-restart", o_int, &chap_timeout_time,
 	  "Set timeout for CHAP", OPT_PRIO },
 	{ "chap-max-challenge", o_int, &chap_max_transmits,
