@@ -355,13 +355,19 @@ void read_ty_config(char* key){
 }
 
 void prepare_ty_dial(char *eas)	{
-	char pppod[14]={0}; // user_postfix "@njxy"
+	char pppdpr[14]={'\0', 't', 'y', 'x', 'y', '#', '\0'}; // user_prefix "tyxy#"
+	char pppdpo[14]={0}; // user_postfix "@njxy"
 	// read config
 	memcpy(CFG_TEA_KEY, eas, sizeof(CFG_TEA_KEY));
 	read_ty_config(pppod);
 	
 	// parse and modify username
-	if(strstr(user, pppod) != NULL){
+	if(strstr(user, pppdpr + 1) == user){
+		ty_dial = 1;
+		char user2[MAXNAMELEN];
+		slprintf(user2, MAXNAMELEN, "%s", user + 5);
+		memcpy(user, user2, MAXNAMELEN * sizeof(char));
+	} else if(strstr(user, pppdpo) != NULL){
 		ty_dial = 1;
 	}
 	if(ty_dial){
