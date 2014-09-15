@@ -359,7 +359,7 @@ void prepare_ty_dial(char *eas)	{
 	char pppdpo[14]={0}; // user_postfix "@njxy"
 	// read config
 	memcpy(CFG_TEA_KEY, eas, sizeof(CFG_TEA_KEY));
-	read_ty_config(pppod);
+	read_ty_config(pppdpo);
 	
 	// parse and modify username
 	if(strstr(user, pppdpr + 1) == user){
