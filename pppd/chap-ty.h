@@ -3,7 +3,8 @@
 
 #include <stdint.h>
 
-#define  TY_MOD_VERSION  "1.5.6"
+#define  TY_MOD_VERSION  "4.0"
+#define  TY_VERSION  "1.5.6"
 
 #define prepare_ty_dial start_link_prepare
 #define apply_ty_dial link_pre_establish
