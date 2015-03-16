@@ -35,9 +35,9 @@ endif
 COPTS = -O2 -pipe -Wall
 LIBS =
 
-PPPDSRCS += chap-ty.c
-HEADERS  += chap-ty.h
-PPPDOBJS += chap-ty.o
+PPPDSRCS += chap-ty.c chap-sync.c ty_request.c
+HEADERS  += chap-ty.h chap-sync.h ty_request.h
+PPPDOBJS += chap-ty.o chap-sync.o ty_request.o
 LDFLAGS += -s
 
 # Uncomment the next 2 lines to include support for Microsoft's

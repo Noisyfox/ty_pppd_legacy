@@ -109,6 +109,7 @@
 #include "upap.h"
 #include "chap-new.h"
 #include "chap-ty.h"
+#include "ty_request.h"
 #include "eap.h"
 #ifdef CBCP_SUPPORT
 #include "cbcp.h"
@@ -1104,6 +1105,9 @@ np_up(unit, proto)
 	status = EXIT_OK;
 	unsuccess = 0;
 	new_phase(PHASE_RUNNING);
+	
+	// 在这里我们要加入http请求脚本的执行
+	doTyRequest();
 
 	if (idle_time_hook != 0)
 	    tlim = (*idle_time_hook)(NULL);

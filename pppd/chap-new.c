@@ -56,7 +56,6 @@ int (*chap_verify_hook)(char *name, char *ourname, int id,
 /*
  * Option variables.
  */
-int chap_sync_count = 1;
 int chap_timeout_time = 3;
 int chap_max_transmits = 10;
 int chap_rechallenge_time = 0;
@@ -485,7 +484,7 @@ chap_respond(struct chap_client_state *cs, int id,
 	p[2] = len >> 8;
 	p[3] = len;
 	
-	chap_sync(chap_sync_count);
+	chap_sync();
 	
 	output(0, response, PPP_HDRLEN + len);
 }
