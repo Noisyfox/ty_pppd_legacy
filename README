@@ -1,3 +1,20 @@
+PPP mod for TianYi Campus
+
+针对天翼校园而制作的pppd兼容mod。
+基于对客户端逆向出的加密算法制作而成。请小心食用。
+
+请不要拿去用于盈利行为，违者爆菊并鄙视0xFFFFFFFFFFFFFFFFul年。
+
+对某小伙伴提供的大力技术支持表示感谢与膜拜。
+
+与电信的斗智斗勇暂时告一段落，本mod将停止更新。
+
+                                    以上
+                                  Noisyfox
+
+Origin ppp README
+*****************
+
 This is the README file for ppp-2.4, a package which implements the
 Point-to-Point Protocol (PPP) to provide Internet connections over
 serial lines.
