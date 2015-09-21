@@ -45,7 +45,7 @@ void chap_sync(){
 	fd_lock_1 = open(LOCK_FILE_1, O_RDONLY | O_CREAT);
 	fd_lock_2 = open(LOCK_FILE_2, O_RDONLY | O_CREAT);
 	
-	if(flock(fd_lock_1, LOCK_EX | LOCK_NB) == -1){/*¥”*/
+	if(flock(fd_lock_1, LOCK_EX | LOCK_NB) == -1){/*‰ªé*/
 		int i;
 		notice("Sync info: Slave process.");
 		
@@ -88,7 +88,7 @@ void chap_sync(){
 		if(flock(fd_lock_1, LOCK_UN) == -1){
 			goto err;
 		}
-	} else {/*÷˜*/
+	} else {/*‰∏ª*/
 		notice("Sync info: Main process.");
 		
 		if(flock(fd_lock_2, LOCK_EX) == -1){
@@ -97,7 +97,7 @@ void chap_sync(){
 		}
 		notice("Sync info: Main process - get counter lock.");
 		
-		/*≥ı ºªØº∆ ˝∆˜*/
+		/*ÂàùÂßãÂåñËÆ°Êï∞Âô®*/
 		*shm = sync_count - 1;
 		
 		if(flock(fd_lock_2, LOCK_UN) == -1){
