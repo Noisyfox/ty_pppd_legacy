@@ -5,3 +5,5 @@
 *.a
 *.cat8
 Makefile
+*.patch
+*.bak

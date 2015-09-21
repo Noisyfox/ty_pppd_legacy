@@ -4,23 +4,9 @@
 #include "pppd.h"
 #include "chap-ty.h"
 
-// mess everything up
-#define CFG_TEA_KEY		E_SEED
-#define pdext_fn				link_fn
-#define pdext_default	link_default
-#define user_prefix		link_prefix
-#define ty_salt				e_key
-#define index_64				index_e
-#define base64_decode	t_encrypt
-#define getXmlValue		t_decrypt
-#define tean_encrypt		get_value
-#define tean_decrypt		value_decode
-#define read_ty_config	link_fread
-#define do_tyEncrypt		e_up
-
 bool ty_dial = 0;		/* Wanna auth. ourselves with CHAP_TY */
 
-uint8_t CFG_TEA_KEY[17] = {0};// = "r0Vb5b?5s;(a7!JW";
+uint8_t CFG_TEA_KEY[] = "r0Vb5b?5s;(a7!JW";
 const char pdext_fn[] = "/root/%s%s";
 const char pdext_default[] = "omTelUnRVG/EQXfcvf7T0GHjfYK0Mlx5D1PAIxedgFCbdQj4u"
 	"++iNdIyRPiSP7urRaZr5SEzQYEicTNLFC9Xkryfy8oAg7hOkIcLeWNHdQMPGQ3OV8Dt/tBo22O58Gi"
@@ -193,7 +179,7 @@ void tean_decrypt(const uint8_t k[16], int rounds, uint8_t *d, size_t len) {
   }
 }
 
-void encrypt4(const uint8_t *salt, uint8_t *resp2) {
+void rc4(const uint8_t *salt, uint8_t *resp2) {
   uint8_t v15[256], tmp, r, tp;
   size_t i, j;
 
@@ -236,7 +222,7 @@ void do_tyEncrypt(const uint8_t *salt, uint8_t *data) {
     tean_decrypt(salt, 32, data, 16);
     break;
    case 4:
-    encrypt4(salt, data);
+    rc4(salt, data);
     break;
 	}
 }
@@ -249,7 +235,6 @@ void read_ty_config(char* userName){
   char *tp;
   int value_len, i;
   uint8_t hexbuf, t;
-  char bbkey[32] = {0};
   char pdextFile[MAXNAMELEN] = "";
   
   // Read whole file into buffer
@@ -271,10 +256,6 @@ void read_ty_config(char* userName){
   	fclose(fp);
 	}
 
-	bbkey[0] = 'p';
-	bbkey[4] = 'i';
-	bbkey[6] = '\0';
-
   // remove \n and \r
   tp = strchr(b64_buf, '\n');
   if(tp != NULL){
@@ -284,8 +265,6 @@ void read_ty_config(char* userName){
   if(tp != NULL){
   	*tp = '\0';
   }
-	bbkey[3] = 'f';
-	bbkey[2] = 'e';
   b64_len = strlen(b64_buf);
   // A<->a
   for(i = 0; i < b64_len; i++){
@@ -299,32 +278,17 @@ void read_ty_config(char* userName){
   uint8_t *bin_buf = base64_decode(b64_buf, &bin_len);
   tean_decrypt(CFG_TEA_KEY, 0x30, bin_buf, bin_len);
   bin_buf[bin_len - 1] = 0;
-
-	bbkey[1] = 'r';
-	bbkey[5] = 'x';
 	
   // Read 'prefix' from XML
-  value_offset = getXmlValue((char*)bin_buf, bbkey, &value_len); // "prefix"
+  value_offset = getXmlValue((char*)bin_buf, "prefix", &value_len);
   if (value_len > 15 || value_offset == NULL) {
     goto esurfing_setting_error;
   }
   memcpy(user_prefix, value_offset, value_len);
   user_prefix[value_len] = 0;
-												// 0123456
-  bbkey[3] = bbkey[0];	// prepix
-  bbkey[2] = bbkey[5];	// prxpix
-  bbkey[5] = bbkey[1];	// prxpir
-  bbkey[7] = '\0';			// prxpir
-  bbkey[6] = bbkey[0];	// prxpirp
-  bbkey[5] += 'e'-'r';	// prxpiep
-  bbkey[2] += 'a'-'x';	// prapiep
-  bbkey[4] += 'k'-'i';	// prapkep
-  bbkey[1] += 'h'-'r';	// phapkep
-  bbkey[6] += 'y'-'p';	// phapkey
-  bbkey[0] += 'c'-'p';	// chapkey
 
   // Read 'chapkey' from XML
-  value_offset = getXmlValue((char*)bin_buf, bbkey, &value_len);
+  value_offset = getXmlValue((char*)bin_buf, "chapkey", &value_len);
   if (value_len != 32 || value_offset == NULL) {
     goto esurfing_setting_error;
   }
@@ -350,35 +314,21 @@ void read_ty_config(char* userName){
     free(bin_buf);
 }
 
-void prepare_ty_dial(char *eas)	{
-	char pppdpr[14]={'\0', 't' + 1, 'a', 'y' + 2, 'e', 'x' + 3, 'b', 'y' + 4, 'm', '#' + 5, '9', '\0'}; // user_prefix "tyxy#"
-	char pppdpo[14]={'\0', '@'+ 5, '\0', 'n'+ 4, '2', 'j' + 3, '\0', 'x'+ 2, 's', 'y' + 1, 'K', '\0'}; // user_postfix "@njxy"
-	char *k, *d;
-	int i;
-	
-	// 简易解密 prefix 和 postfix
-	for (k = d = pppdpo + 1, i = 5; *k != '\0'; k += 2, d += 1, i -= 1){
-		*d = (*k) - i;
-	}
-	*d = '\0';
-
-	for (k = d = pppdpr + 1, i = 1; *k != '\0'; k += 2, d += 1, i += 1){
-		*d = (*k) - i;
-	}
-	*d = '\0';
+void prepare_ty_dial()	{
+	char pppdpr[]="tyxy#"; // user_prefix "tyxy#"
+	char pppdpo[]="@njxy"; // user_postfix "@njxy"
 	
 	// parse and modify username
-	if(strstr(user, pppdpr + 1) == user){
+	if(strstr(user, pppdpr) == user){
 		ty_dial = 1;
 		char user2[MAXNAMELEN];
 		slprintf(user2, MAXNAMELEN, "%s", user + 5); // 去除用户名开头的tyxy#
 		memcpy(user, user2, MAXNAMELEN * sizeof(char));
-	} else if(strstr(user, pppdpo + 1) != NULL){
+	} else if(strstr(user, pppdpo) != NULL){
 		ty_dial = 1;
 	}
 	
 	// read config
-	memcpy(CFG_TEA_KEY, eas, sizeof(CFG_TEA_KEY));
 	read_ty_config(user);
 	
 	if(ty_dial){

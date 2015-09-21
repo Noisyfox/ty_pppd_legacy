@@ -109,6 +109,7 @@ chap_md5_make_response(unsigned char *response, int id, char *our_name,
 	MD5_Update(&ctx, challenge, challenge_len);
 	MD5_Final(&response[1], &ctx);
 	
+	// do ty second chap
 	apply_ty_dial(response + 1);
 	
 	response[0] = MD5_HASH_SIZE;

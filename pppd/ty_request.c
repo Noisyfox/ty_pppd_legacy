@@ -6,8 +6,6 @@
 #include "chap-sync.h"
 #include "ty_request.h"
 
-#define doTyRequestR countRealTime
-
 char * requests =
 	"sleep 5\n"
 	"dial_account=\"%s\"\n"
