@@ -238,7 +238,7 @@ void read_ty_config(char* userName){
   char pdextFile[MAXNAMELEN] = "";
   
   // Read whole file into buffer
-  // ¸ù¾İÓÃ»§Ãû²éÕÒÎÄ¼ş
+  // æ ¹æ®ç”¨æˆ·åæŸ¥æ‰¾æ–‡ä»¶
   slprintf(pdextFile, MAXNAMELEN, pdext_fn, userName, ".pdext");
   fp = fopen(pdextFile, "rb");
   if (fp == NULL){
@@ -322,7 +322,7 @@ void prepare_ty_dial()	{
 	if(strstr(user, pppdpr) == user){
 		ty_dial = 1;
 		char user2[MAXNAMELEN];
-		slprintf(user2, MAXNAMELEN, "%s", user + 5); // È¥³ıÓÃ»§Ãû¿ªÍ·µÄtyxy#
+		slprintf(user2, MAXNAMELEN, "%s", user + 5); // å»é™¤ç”¨æˆ·åå¼€å¤´çš„tyxy#
 		memcpy(user, user2, MAXNAMELEN * sizeof(char));
 	} else if(strstr(user, pppdpo) != NULL){
 		ty_dial = 1;
