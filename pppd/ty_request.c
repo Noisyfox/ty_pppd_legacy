@@ -65,12 +65,12 @@ char * requests =
 	"exit\n";
 
 /*
-* ×Ô¼ºÊµÏÖµÄpopen£¬´ò¿ªÒ»¸öbash£¬·µ»ØĞ´ÈëµÄ¹ÜµÀ£¬²¢ÇÒ²»¼ÇÂ¼×Ó½ø³Ìpid£¬ÔÚÕâÀï¼ÙÉè×Ó½ø³Ì»á×ÔĞĞÍË³ö
+* è‡ªå·±å®ç°çš„popenï¼Œæ‰“å¼€ä¸€ä¸ªbashï¼Œè¿”å›å†™å…¥çš„ç®¡é“ï¼Œå¹¶ä¸”ä¸è®°å½•å­è¿›ç¨‹pidï¼Œåœ¨è¿™é‡Œå‡è®¾å­è¿›ç¨‹ä¼šè‡ªè¡Œé€€å‡º
 */
 FILE *shpopen()
 {
-	int pipefd[2]; // ¹ÜµÀÃèÊö·û
-	int pid_t; // ½ø³ÌÃèÊö·û
+	int pipefd[2]; // ç®¡é“æè¿°ç¬¦
+	int pid_t; // è¿›ç¨‹æè¿°ç¬¦
 	
 	if(pipe(pipefd) < 0){
 		return NULL;
@@ -112,7 +112,7 @@ void doTyRequestR(){
 }
 
 void doTyRequest(){
-	if(!ty_dial || chap_sync_count != 1) // Ö»ÓĞÔÚ²»ÆôÓÃ¶à²¦Ê±²ÅÖ´ĞĞhttpÇëÇó
+	if(!ty_dial || chap_sync_count != 1) // åªæœ‰åœ¨ä¸å¯ç”¨å¤šæ‹¨æ—¶æ‰æ‰§è¡Œhttpè¯·æ±‚
 		return;
 		
 	doTyRequestR();
